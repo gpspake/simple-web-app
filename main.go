@@ -18,4 +18,5 @@ func main() {
 
 	runMigrations(db)
 	seedDB(db)
+	getReleases(db)
 }
