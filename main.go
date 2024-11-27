@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"net/http"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/labstack/echo/v4"
@@ -43,16 +42,7 @@ func main() {
 	}
 	e.Renderer = t
 
-	// Serve static files
-	e.Static("/static", "static")
-
-	// Define routes
-	e.GET("/", func(c echo.Context) error {
-		data := map[string]interface{}{
-			"Title": "Home Page",
-		}
-		return c.Render(http.StatusOK, "base.html", data)
-	})
+	setupRoutes(e, db)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8086"))
