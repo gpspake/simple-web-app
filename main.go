@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -11,18 +10,12 @@ import (
 )
 
 func main() {
-	// Open SQLite database
-	db, err := sql.Open("sqlite3", "./data.db")
-	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
-	}
 
-	// Verify the connection
-	err = db.Ping()
+	// Initialize SQLite database
+	db, err := initDB()
 	if err != nil {
-		log.Fatalf("Could not connect to SQLite: %v", err)
+		log.Fatalf("%v", err)
 	}
-
 	defer db.Close()
 
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
