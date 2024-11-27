@@ -1,0 +1,6 @@
+CREATE TABLE releases
+(
+    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT    NOT NULL,
+    year INTEGER NOT NULL
+);
