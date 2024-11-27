@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -19,6 +20,40 @@ func TestInitDB(t *testing.T) {
 	// Verify the connection
 	if err := db.Ping(); err != nil {
 		t.Errorf("Failed to connect to in-memory database: %v", err)
+	}
+}
+
+func TestResetDb(t *testing.T) {
+	// Define the file name used by resetDb
+	const fileName = "data.db"
+
+	// Step 1: Create a dummy file to simulate an existing database file
+	t.Log("Creating dummy data.db file for test")
+	file, err := os.Create(fileName)
+	if err != nil {
+		t.Fatalf("Failed to create dummy file: %v", err)
+	}
+	file.Close()
+
+	// Verify that the file exists
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		t.Fatalf("Dummy data.db file was not created")
+	}
+
+	// Step 2: Call resetDb
+	t.Log("Calling resetDb to delete and recreate the file")
+	resetDb()
+
+	// Verify that the file has been deleted and recreated
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		t.Errorf("data.db file was not recreated")
+	}
+
+	// Clean up: Remove the file after the test
+	t.Log("Cleaning up: Removing data.db")
+	err = os.Remove(fileName)
+	if err != nil {
+		t.Fatalf("Failed to remove test data.db file: %v", err)
 	}
 }
 

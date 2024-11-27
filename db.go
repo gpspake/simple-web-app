@@ -9,6 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
+	"os"
 )
 
 func initDB() (*sql.DB, error) {
@@ -18,13 +19,38 @@ func initDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// Verify the connection
-	err = db.Ping()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	return db, nil
+}
+
+func resetDb() {
+	// Define the file name
+	const fileName = "data.db"
+
+	// Check if the file exists
+	if _, err := os.Stat(fileName); err == nil {
+		// If it exists, delete it
+		log.Println("Deleting existing data.db...")
+		if err := os.Remove(fileName); err != nil {
+			log.Fatalf("Error deleting file: %v", err)
+			return
+		}
+		log.Println("File deleted successfully.")
+	} else if !os.IsNotExist(err) {
+		// Handle other errors from os.Stat
+		log.Fatalf("Error checking file: %v", err)
+		return
 	}
 
-	return db, nil
+	// Recreate the file
+	log.Println("Recreating data.db...")
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatalf("Error creating file: %v", err)
+		return
+	}
+	defer file.Close()
+
+	log.Println("File created successfully.")
 }
 
 func runMigrations(db *sql.DB) {

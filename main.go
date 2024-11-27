@@ -29,6 +29,7 @@ func main() {
 	}
 	defer db.Close()
 
+	resetDb()
 	runMigrations(db)
 	seedDB(db)
 	getReleases(db)
