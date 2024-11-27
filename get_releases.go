@@ -1,41 +1,29 @@
 package main
 
-import (
-	"database/sql"
-	"fmt"
-	"log"
+import "database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
-)
-
-func getReleases(db *sql.DB) {
-	// Query to select all rows from the 'releases' table
+func getReleases(db *sql.DB) ([]map[string]interface{}, error) {
 	rows, err := db.Query("SELECT id, name, year FROM releases")
 	if err != nil {
-		log.Fatalf("Failed to query releases: %v", err)
+		return nil, err
 	}
 	defer rows.Close()
 
-	// Iterate over the rows and print the data
-	fmt.Println("Releases:")
+	var items []map[string]interface{}
 	for rows.Next() {
 		var id int
 		var name string
 		var year int
-
-		// Scan the columns into variables
 		err := rows.Scan(&id, &name, &year)
 		if err != nil {
-			log.Printf("Failed to scan row: %v", err)
-			continue
+			return nil, err
 		}
-
-		// Print the row
-		fmt.Printf("ID: %d, Name: %s, Year: %d\n", id, name, year)
+		items = append(items, map[string]interface{}{
+			"id":   id,
+			"name": name,
+			"year": year,
+		})
 	}
 
-	// Check for errors after iterating over rows
-	if err = rows.Err(); err != nil {
-		log.Fatalf("Error while iterating rows: %v", err)
-	}
+	return items, nil
 }

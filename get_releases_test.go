@@ -38,8 +38,16 @@ func TestGetReleases(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	// Call getReleases
-	getReleases(db)
+	// Call getReleases and format the output
+	releases, err := getReleases(db)
+	if err != nil {
+		t.Fatalf("Failed to fetch releases: %v", err)
+	}
+
+	fmt.Println("Releases:")
+	for _, release := range releases {
+		fmt.Printf("ID: %d, Name: %s, Year: %d\n", release["id"], release["name"], release["year"])
+	}
 
 	// Restore stdout and close the pipe writer
 	w.Close()

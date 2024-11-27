@@ -32,7 +32,6 @@ func main() {
 	resetDb()
 	runMigrations(db)
 	seedDB(db)
-	getReleases(db)
 
 	// Initialize Echo
 	e := echo.New()

@@ -1,4 +1,8 @@
 {{ define "content" }}
-<h2>Welcome to the Home Page</h2>
-<p>This is a basic example of a page using Echo and Go templates.</p>
+<h1>{{.Title}}</h1>
+<ul>
+    {{range .Releases}}
+    <li>ID: {{.id}}, Name: {{.name}}, Year: {{.year}}</li>
+    {{end}}
+</ul>
 {{ end }}
