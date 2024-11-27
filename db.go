@@ -50,3 +50,41 @@ func runMigrations(db *sql.DB) {
 
 	log.Println("Migrations applied successfully!")
 }
+
+func seedDB(db *sql.DB) {
+	// Seed data for the 'releases' table
+	var releases []struct {
+		Name string
+		Year int
+	}
+
+	startYear := 1991
+	for i := 1; i <= 30; i++ {
+		releases = append(releases, struct {
+			Name string
+			Year int
+		}{
+			Name: fmt.Sprintf("Album %d", i),
+			Year: startYear + (i - 1),
+		})
+	}
+
+	// Prepare the INSERT statement
+	stmt, err := db.Prepare("INSERT INTO releases (name, year) VALUES (?, ?)")
+	if err != nil {
+		log.Fatalf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	// Insert data into the table
+	for _, release := range releases {
+		_, err := stmt.Exec(release.Name, release.Year)
+		if err != nil {
+			log.Printf("Failed to insert release '%s': %v", release.Name, err)
+		} else {
+			log.Printf("Successfully inserted release: '%s'", release.Name)
+		}
+	}
+
+	log.Println("Seeded releases")
+}

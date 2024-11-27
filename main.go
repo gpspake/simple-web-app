@@ -17,4 +17,5 @@ func main() {
 	defer db.Close()
 
 	runMigrations(db)
+	seedDB(db)
 }
