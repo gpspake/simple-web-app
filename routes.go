@@ -12,6 +12,28 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 
 	// Define routes
 	e.GET("/", func(c echo.Context) error {
+		// Pass releases to the template
+		data := map[string]interface{}{
+			"Title": "Home Page",
+		}
+
+		// Render the template or return an error
+		if err := c.Render(http.StatusOK, "index", data); err != nil {
+			c.Logger().Errorf("Failed to render /: %v", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return nil
+	})
+
+	e.GET("/about", func(c echo.Context) error {
+		data := map[string]interface{}{
+			"Title": "About",
+		}
+		return c.Render(http.StatusOK, "about", data)
+	})
+
+	e.GET("/releases", func(c echo.Context) error {
 		releases, err := getReleases(db)
 
 		if err != nil {
@@ -21,9 +43,9 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 
 		// Pass releases to the template
 		data := map[string]interface{}{
-			"Title":    "Home Page",
+			"Title":    "Releases",
 			"Releases": releases,
 		}
-		return c.Render(http.StatusOK, "base.html", data)
+		return c.Render(http.StatusOK, "releases", data)
 	})
 }
