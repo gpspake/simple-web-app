@@ -210,8 +210,49 @@ func seedReleaseArtists(db *sql.DB) {
 	log.Println("Seeded release_artists")
 }
 
+func populateReleaseFts(db *sql.DB) {
+
+	// Populate 'release_fts' virtual table
+	tx, err := db.Begin() // Use a transaction for better performance
+	if err != nil {
+		log.Fatalf("Failed to begin transaction: %v", err)
+	}
+
+	stmt, err := tx.Prepare(`
+		INSERT INTO releases_fts (release_id, artist_name, release_name, release_year)
+		SELECT
+			releases.id AS release_id,
+			artists.name AS artist_name,
+			releases.name AS release_name,
+			releases.year AS release_year
+		FROM
+			release_artists
+				JOIN
+			artists ON release_artists.artist_id = artists.id
+				JOIN
+			releases ON release_artists.release_id = releases.id;
+	`)
+	if err != nil {
+		log.Fatalf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec()
+	if err != nil {
+		log.Printf("Failed to execute releases_fts query %v", err)
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("Failed to commit transaction: %v", err)
+	}
+
+	log.Println("Populated Release FTS")
+}
+
 func seedDB(db *sql.DB) {
 	seedReleases(db)
 	seedArtists(db)
 	seedReleaseArtists(db)
+	populateReleaseFts(db)
 }

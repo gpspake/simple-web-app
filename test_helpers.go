@@ -30,6 +30,15 @@ func createTestTables(db *sql.DB) error {
 		release_id INTEGER NOT NULL REFERENCES releases(id),
 		artist_id INTEGER NOT NULL REFERENCES artists(id)
 	);
+
+	CREATE VIRTUAL TABLE releases_fts USING fts5
+	(
+		release_id UNINDEXED,
+		release_name,
+		release_year,
+		artist_name,
+		tokenize="trigram"
+	);
 	`)
 	if err != nil {
 		tx.Rollback()
