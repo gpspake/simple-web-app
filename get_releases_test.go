@@ -38,8 +38,12 @@ func TestGetReleases(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	// Call getReleases and format the output
-	releases, err := getReleases(db)
+	// Set limit and offset for pagination
+	limit := 10
+	offset := 0
+
+	// Call getReleases with limit and offset
+	releases, err := getReleases(db, limit, offset, nil) // Passing `nil` for logger for simplicity
 	if err != nil {
 		t.Fatalf("Failed to fetch releases: %v", err)
 	}
@@ -63,7 +67,8 @@ func TestGetReleases(t *testing.T) {
 	expectedOutput := "Releases:\n"
 	startYear := 1991
 
-	for i := 1; i <= 30; i++ {
+	// Verify only the paginated results
+	for i := 1; i <= limit; i++ {
 		expectedOutput += fmt.Sprintf("ID: %d, Name: Album %d, Year: %d\n", i, i, startYear+(i-1))
 	}
 

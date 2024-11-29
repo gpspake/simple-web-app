@@ -1,8 +1,23 @@
 {{ define "content" }}
-<h1>{{.Title}}</h1>
+
+<p>Page {{ .Pagination.Page }} of {{ .Pagination.TotalPages }}</p>
+<p>{{ .Pagination.First }} - {{ .Pagination.Last }} of {{ .Pagination.TotalCount }}</p>
 <ul>
     {{range .Releases}}
     <li>ID: {{.id}}, Name: {{.name}}, Year: {{.year}}</li>
     {{end}}
 </ul>
+
+{{if .Pagination.PrevUrl}}
+<a href="{{ .Pagination.PrevUrl }}">Prev</a>
+{{else}}
+<span>Prev</span>
+{{end}}
+
+{{if .Pagination.NextUrl}}
+<a href="{{ .Pagination.NextUrl }}">Next</a>
+{{else}}
+<span>Next</span>
+{{end}}
+
 {{ end }}

@@ -34,7 +34,12 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 	})
 
 	e.GET("/releases", func(c echo.Context) error {
-		releases, err := getReleases(db)
+		// Read query parameters
+		pageStr := c.QueryParam("page")
+		limitStr := c.QueryParam("page_size")
+
+		// Get releases with pagination
+		releases, pagination, err := getPaginatedReleases(db, pageStr, limitStr, e.Logger, c.Request())
 
 		if err != nil {
 			e.Logger.Printf("Failed to get releases: %v", err)
@@ -43,8 +48,10 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 
 		// Pass releases to the template
 		data := map[string]interface{}{
-			"Title":    "Releases",
-			"Releases": releases,
+			"Title":      "Releases",
+			"Releases":   releases,
+			"Page":       pageStr,
+			"Pagination": pagination,
 		}
 		return c.Render(http.StatusOK, "releases", data)
 	})
