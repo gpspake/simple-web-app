@@ -77,7 +77,7 @@ func runMigrations(db *sql.DB) {
 	log.Println("Migrations applied successfully!")
 }
 
-func seedDB(db *sql.DB) {
+func seedReleases(db *sql.DB) {
 	// Seed data for the 'releases' table
 	var releases []struct {
 		Name string
@@ -113,4 +113,105 @@ func seedDB(db *sql.DB) {
 	}
 
 	log.Println("Seeded releases")
+}
+
+func seedArtists(db *sql.DB) {
+	// Seed data for the 'artists' table
+	type Artist struct {
+		Name string
+	}
+
+	var artists = []Artist{
+		{Name: "Queen"},
+		{Name: "Radio"},
+		{Name: "Eagle"},
+		{Name: "Blurb"},
+		{Name: "Cream"},
+		{Name: "Oasis"},
+		{Name: "Panic"},
+		{Name: "Drake"},
+		{Name: "Kyuss"},
+		{Name: "Spark"},
+		{Name: "Patti"},
+		{Name: "Siren"},
+		{Name: "Beach"},
+		{Name: "Ratat"},
+		{Name: "Reign"},
+		{Name: "Shins"},
+		{Name: "Smoke"},
+		{Name: "Tracy"},
+		{Name: "Peach"},
+		{Name: "Moody"},
+		{Name: "Suede"},
+		{Name: "Flume"},
+		{Name: "Tonic"},
+		{Name: "Lorde"},
+		{Name: "Exile"},
+		{Name: "Mecca"},
+		{Name: "Jewel"},
+		{Name: "Spoon"},
+		{Name: "Adele"},
+		{Name: "Janes"},
+	}
+
+	// Prepare the INSERT statement
+	stmt, err := db.Prepare("INSERT INTO artists (name) VALUES (?)")
+	if err != nil {
+		log.Fatalf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	// Insert data into the table
+	for _, artist := range artists {
+		_, err := stmt.Exec(artist.Name)
+		if err != nil {
+			log.Printf("Failed to insert artist '%s': %v", artist.Name, err)
+		} else {
+			log.Printf("Successfully inserted artist: '%s'", artist.Name)
+		}
+	}
+
+	log.Println("Seeded Releases")
+}
+
+func seedReleaseArtists(db *sql.DB) {
+	// Seed data for the 'release_artists' table
+	type Artist struct {
+		ReleaseId int
+		ArtistId  int
+	}
+
+	// Seed the release_artists table
+	tx, err := db.Begin() // Use a transaction for better performance
+	if err != nil {
+		log.Fatalf("Failed to begin transaction: %v", err)
+	}
+
+	stmt, err := tx.Prepare("INSERT INTO release_artists (id, release_id, artist_id) VALUES (?, ?, ?)")
+	if err != nil {
+		log.Fatalf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	for i := 1; i <= 30; i++ {
+		_, err := stmt.Exec(i, i, i)
+		if err != nil {
+			log.Printf("Failed to insert row %d: %v", i, err)
+		} else {
+			fmt.Printf("Inserted row: id=%d, release_id=%d, artist_id=%d\n", i, i, i)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("Failed to commit transaction: %v", err)
+	}
+
+	log.Println("Seeded release_artists")
+}
+
+func seedDB(db *sql.DB) {
+	seedReleases(db)
+	seedArtists(db)
+	seedReleaseArtists(db)
 }

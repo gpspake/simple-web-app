@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -44,8 +45,31 @@ func getPaginatedReleases(
 }
 
 func getReleases(db *sql.DB, limit int, offset int, logger echo.Logger) ([]map[string]interface{}, error) {
+	// Validate inputs
+	if limit <= 0 {
+		return nil, fmt.Errorf("invalid limit: %d", limit)
+	}
+	if offset < 0 {
+		return nil, fmt.Errorf("invalid offset: %d", offset)
+	}
+
 	// Default query to fetch releases with pagination
-	query := "SELECT id, name, year FROM releases ORDER BY year ASC LIMIT ? OFFSET ?"
+	query := `
+        SELECT
+            releases.id AS release_id,
+            releases.name AS release_name,
+            releases.year AS release_year,
+            artists.name AS artist_name
+        FROM
+            release_artists
+        JOIN
+            artists ON release_artists.artist_id = artists.id
+        JOIN
+            releases ON release_artists.release_id = releases.id
+        ORDER BY release_year ASC 
+        LIMIT ? 
+        OFFSET ?;
+    `
 	rows, err := db.Query(query, limit, offset)
 	if err != nil {
 		logger.Errorf("Error querying releases: %v", err)
@@ -56,19 +80,21 @@ func getReleases(db *sql.DB, limit int, offset int, logger echo.Logger) ([]map[s
 	// Collect results
 	var items []map[string]interface{}
 	for rows.Next() {
-		var id int
-		var name string
-		var year int
-		err := rows.Scan(&id, &name, &year)
+		var releaseId int
+		var releaseName string
+		var releaseYear int
+		var artistName string
+		err := rows.Scan(&releaseId, &releaseName, &releaseYear, &artistName)
 		if err != nil {
 			logger.Errorf("Error scanning row: %v", err)
 			return nil, err
 		}
 
 		items = append(items, map[string]interface{}{
-			"id":   id,
-			"name": name,
-			"year": year,
+			"releaseId":   releaseId,
+			"releaseName": releaseName,
+			"releaseYear": releaseYear,
+			"artistName":  artistName,
 		})
 	}
 

@@ -4,7 +4,7 @@
 <p>{{ .Pagination.First }} - {{ .Pagination.Last }} of {{ .Pagination.TotalCount }}</p>
 <ul>
     {{range .Releases}}
-    <li>ID: {{.id}}, Name: {{.name}}, Year: {{.year}}</li>
+    <li>ID: {{.releaseId}}, Name: {{.releaseName}}, Year: {{.releaseYear}} Artist: {{.artistName}}</li>
     {{end}}
 </ul>
 
