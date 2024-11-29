@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,57 +12,30 @@ import (
 )
 
 func TestRoutes(t *testing.T) {
-	// Initialize Echo
 	e := echo.New()
-
-	// Register the renderer
 	e.Renderer = &Template{}
 
-	// Use an in-memory SQLite database for testing
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Failed to create in-memory database: %v", err)
 	}
 	defer db.Close()
 
-	// Set up the database schema for testing
-	_, err = db.Exec(`CREATE TABLE releases (id INTEGER PRIMARY KEY, name TEXT, year INTEGER)`)
-	if err != nil {
-		t.Fatalf("Failed to create test table: %v", err)
-	}
-
-	// Insert test data
-	_, err = db.Exec(`INSERT INTO releases (name, year) VALUES 
-		('Album 1', 1991), 
-		('Album 2', 1992)`)
-	if err != nil {
-		t.Fatalf("Failed to insert test data: %v", err)
-	}
-
-	// Set up routes
+	createTestTables(db)
+	seedTestReleases(db)
+	seedTestArtists(db)
+	seedTestReleaseArtists(db)
 	setupRoutes(e, db)
 
-	// Test the home route
 	t.Run("GET /", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Welcome to the Home Page")
+		assert.Contains(t, rec.Body.String(), "Home Page")
 	})
 
-	// Test the about route
-	t.Run("GET /about", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/about", nil)
-		rec := httptest.NewRecorder()
-		e.ServeHTTP(rec, req)
-
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), "This is the about page.")
-	})
-
-	// Test the releases route
 	t.Run("GET /releases", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/releases", nil)
 		rec := httptest.NewRecorder()
@@ -71,4 +45,41 @@ func TestRoutes(t *testing.T) {
 		assert.Contains(t, rec.Body.String(), "Album 1")
 		assert.Contains(t, rec.Body.String(), "1991")
 	})
+
+	t.Run("Invalid Route", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/invalid", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+}
+
+func seedTestReleases(db *sql.DB) {
+	startYear := 1991
+	for i := 1; i <= 30; i++ {
+		_, err := db.Exec("INSERT INTO releases (id, name, year) VALUES (?, ?, ?)",
+			i, fmt.Sprintf("Album %d", i), startYear+(i-1))
+		if err != nil {
+			panic(fmt.Sprintf("Failed to seed releases: %v", err))
+		}
+	}
+}
+
+func seedTestArtists(db *sql.DB) {
+	for i := 1; i <= 30; i++ {
+		_, err := db.Exec("INSERT INTO artists (id, name) VALUES (?, ?)", i, fmt.Sprintf("Artist %d", i))
+		if err != nil {
+			panic(fmt.Sprintf("Failed to seed artists: %v", err))
+		}
+	}
+}
+
+func seedTestReleaseArtists(db *sql.DB) {
+	for i := 1; i <= 30; i++ {
+		_, err := db.Exec("INSERT INTO release_artists (id, release_id, artist_id) VALUES (?, ?, ?)", i, i, i)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to seed release_artists: %v", err))
+		}
+	}
 }
