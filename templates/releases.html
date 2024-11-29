@@ -1,23 +1,38 @@
 {{ define "content" }}
+<h1>{{.Title}}</h1>
 
-<p>Page {{ .Pagination.Page }} of {{ .Pagination.TotalPages }}</p>
-<p>{{ .Pagination.First }} - {{ .Pagination.Last }} of {{ .Pagination.TotalCount }}</p>
-<ul>
-    {{range .Releases}}
-    <li>ID: {{.releaseId}}, Name: {{.releaseName}}, Year: {{.releaseYear}} Artist: {{.artistName}}</li>
+<input
+        type="text"
+        id="search"
+        placeholder="Search releases..."
+        hx-get="/releases"
+        hx-target="#release-list"
+        hx-trigger="keyup changed delay:500ms"
+        hx-replace-url="true"
+        name="q"
+>
+
+<div id="release-list">
+    <p>Page {{ .Pagination.Page }} of {{ .Pagination.TotalPages }}</p>
+    <p>{{ .Pagination.First }} - {{ .Pagination.Last }} of {{ .Pagination.TotalCount }}</p>
+
+    <ul>
+        {{range .Releases}}
+        <li>ID: {{.release_id}}, Name: {{.release_name}}, Year: {{.release_year}} Artist: {{.artist_name}}</li>
+        {{end}}
+    </ul>
+
+    {{if .Pagination.PrevUrl}}
+    <a href="{{ .Pagination.PrevUrl }}">Prev</a>
+    {{else}}
+    <span>Prev</span>
     {{end}}
-</ul>
 
-{{if .Pagination.PrevUrl}}
-<a href="{{ .Pagination.PrevUrl }}">Prev</a>
-{{else}}
-<span>Prev</span>
-{{end}}
-
-{{if .Pagination.NextUrl}}
-<a href="{{ .Pagination.NextUrl }}">Next</a>
-{{else}}
-<span>Next</span>
-{{end}}
+    {{if .Pagination.NextUrl}}
+    <a href="{{ .Pagination.NextUrl }}">Next</a>
+    {{else}}
+    <span>Next</span>
+    {{end}}
+</div>
 
 {{ end }}

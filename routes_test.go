@@ -25,6 +25,7 @@ func TestRoutes(t *testing.T) {
 	seedTestReleases(db)
 	seedTestArtists(db)
 	seedTestReleaseArtists(db)
+	populateReleasesFtsTable(db)
 	setupRoutes(e, db)
 
 	t.Run("GET /", func(t *testing.T) {
@@ -81,5 +82,31 @@ func seedTestReleaseArtists(db *sql.DB) {
 		if err != nil {
 			panic(fmt.Sprintf("Failed to seed release_artists: %v", err))
 		}
+	}
+}
+
+func populateReleasesFtsTable(db *sql.DB) {
+	stmt, err := db.Prepare(`
+		INSERT INTO releases_fts (release_id, artist_name, release_name, release_year)
+		SELECT
+			releases.id AS release_id,
+			artists.name AS artist_name,
+			releases.name AS release_name,
+			releases.year AS release_year
+		FROM
+			release_artists
+				JOIN
+			artists ON release_artists.artist_id = artists.id
+				JOIN
+			releases ON release_artists.release_id = releases.id;
+	`)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to prepare statement: %v", err))
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to execute releases_fts query: %v", err))
 	}
 }

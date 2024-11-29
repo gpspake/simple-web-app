@@ -1,0 +1,20 @@
+<p>Page {{ .Pagination.Page }} of {{ .Pagination.TotalPages }}</p>
+<p>{{ .Pagination.First }} - {{ .Pagination.Last }} of {{ .Pagination.TotalCount }}</p>
+
+<ul>
+    {{ range .Releases }}
+    <li>ID: {{.release_id}}, Name: {{.release_name}}, Year: {{.release_year}} Artist: {{.artist_name}}</li>
+    {{ end }}
+</ul>
+
+{{ if .Pagination.PrevUrl }}
+<a href="{{ .Pagination.PrevUrl }}" hx-get="{{ .Pagination.PrevUrl }}" hx-target="#release-list">Prev</a>
+{{ else }}
+<span>Prev</span>
+{{ end }}
+
+{{ if .Pagination.NextUrl }}
+<a href="{{ .Pagination.NextUrl }}" hx-get="{{ .Pagination.NextUrl }}" hx-target="#release-list">Next</a>
+{{ else }}
+<span>Next</span>
+{{ end }}

@@ -37,22 +37,32 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 		// Read query parameters
 		pageStr := c.QueryParam("page")
 		limitStr := c.QueryParam("page_size")
+		searchQuery := c.QueryParam("q")
 
-		// Get releases with pagination
-		releases, pagination, err := getPaginatedReleases(db, pageStr, limitStr, e.Logger, c.Request())
+		// Get releases with pagination and search
+		releases, pagination, err := getPaginatedReleases(db, pageStr, limitStr, searchQuery, e.Logger, c.Request())
 
 		if err != nil {
 			e.Logger.Printf("Failed to get releases: %v", err)
 			return c.String(http.StatusInternalServerError, "Failed to load releases")
 		}
 
-		// Pass releases to the template
-		data := map[string]interface{}{
-			"Title":      "Releases",
-			"Releases":   releases,
-			"Page":       pageStr,
-			"Pagination": pagination,
+		// Render appropriate template (full page or HTMX partial)
+		if c.Request().Header.Get("HX-Request") == "true" {
+			return c.Render(http.StatusOK, "releases_partial", map[string]interface{}{
+				"Releases":   releases,
+				"Pagination": pagination,
+			})
 		}
+
+		data := map[string]interface{}{
+			"Title":       "Releases",
+			"Releases":    releases,
+			"Page":        pageStr,
+			"Pagination":  pagination,
+			"IncludeHTMX": true,
+		}
+		
 		return c.Render(http.StatusOK, "releases", data)
 	})
 }

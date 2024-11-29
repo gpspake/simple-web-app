@@ -19,9 +19,10 @@ func TestGetReleases(t *testing.T) {
 	seedTestReleases(db)
 	seedTestArtists(db)
 	seedTestReleaseArtists(db)
+	populateReleasesFtsTable(db)
 
 	t.Run("Valid Limit and Offset", func(t *testing.T) {
-		releases, err := getReleases(db, 5, 0, nil)
+		releases, err := getReleases(db, 5, 0, "", nil)
 		if err != nil {
 			t.Fatalf("Failed to fetch releases: %v", err)
 		}
@@ -32,7 +33,7 @@ func TestGetReleases(t *testing.T) {
 	})
 
 	t.Run("Offset Exceeds Data", func(t *testing.T) {
-		releases, err := getReleases(db, 5, 100, nil)
+		releases, err := getReleases(db, 5, 100, "", nil)
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
 		}
@@ -43,7 +44,7 @@ func TestGetReleases(t *testing.T) {
 	})
 
 	t.Run("Invalid Limit", func(t *testing.T) {
-		_, err := getReleases(db, -1, 0, nil)
+		_, err := getReleases(db, -1, 0, "", nil)
 		if err == nil {
 			t.Fatalf("Expected error for invalid limit, but got nil")
 		}

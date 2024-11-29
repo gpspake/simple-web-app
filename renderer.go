@@ -31,12 +31,30 @@ type Template struct{}
 //   - An error if template parsing or execution fails.
 //   - Otherwise, nil to indicate successful rendering.
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	tmpl, err := template.ParseFiles(
-		"templates/base.html",
-		"templates/"+name+".html",
-	)
+	// Check if the request is an HTMX request
+	isPartial := c.Request().Header.Get("HX-Request") == "true"
+
+	var tmpl *template.Template
+	var err error
+
+	if isPartial {
+		// Load only the partial template
+		tmpl, err = template.ParseFiles("templates/" + name + ".html")
+	} else {
+		// Load base template and content template
+		tmpl, err = template.ParseFiles(
+			"templates/base.html",     // Base layout
+			"templates/"+name+".html", // Content file
+		)
+	}
+
 	if err != nil {
 		return err
+	}
+
+	// Render the template
+	if isPartial {
+		return tmpl.Execute(w, data)
 	}
 	return tmpl.ExecuteTemplate(w, "base.html", data)
 }
