@@ -1,6 +1,6 @@
 module simple-web-app
 
-go 1.23.3
+go 1.23
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.18.1
