@@ -11,21 +11,28 @@
     {{ end }}
 </head>
 <body>
-<header>
-    <h1>Simple Website</h1>
-</header>
-<nav>
-    <ul>
-        <li><a href="/">home</a></li>
-        <li><a href="/about">about</a></li>
-        <li><a href="/releases">releases</a></li>
-    </ul>
-</nav>
-<main>
-    {{ block "content" . }}{{ end }}
-</main>
-<footer>
-    <p>&copy; 2024</p>
-</footer>
+
+<div class="min-h-full">
+    <div class="bg-gray-800 pb-32">
+        {{ template "nav.html" . }}
+    </div>
+
+    <main class="-mt-32">
+        <div class="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+            <div class="rounded-lg bg-white px-5 py-6 shadow sm:px-6">
+                <main>
+                    {{ block "content" . }}{{ end }}
+                </main>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+            <div class="border-t border-gray-200 py-8 text-center text-sm text-gray-500 sm:text-left"><span class="block sm:inline">&copy; 2024 Your Company, Inc.</span> <span class="block sm:inline">All rights reserved.</span></div>
+        </div>
+    </footer>
+</div>
+
 </body>
 </html>
