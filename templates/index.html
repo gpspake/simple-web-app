@@ -1,4 +1,67 @@
 {{ define "content" }}
-<h1 class="text-3xl font-bold tracking-tight text-gray-900">{{.Title}}</h1>
-<h2>Welcome to the Home Page</h2>
+<div class="prose">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{.Title}}</h1>
+    <h2>Welcome</h2>
+
+    <p>
+        This is a web app built with
+        <a href="https://go.dev/" target="_blank" rel="noopener">Go</a>,
+        <a href="https://echo.labstack.com/" target="_blank" rel="noopener">Echo</a>,
+        <a href="https://www.sqlite.org/" target="_blank" rel="noopener">SQLite</a>,
+        <a href="https://htmx.org/" target="_blank" rel="noopener">HTMX</a>, and
+        <a href="https://tailwindcss.com/" target="_blank" rel="noopener">Tailwind</a>.
+    </p>
+    <p>
+        It's containerized with
+        <a href="https://www.docker.com/" target="_blank" rel="noopener">Docker</a>;
+        deployed to a
+        <a href="https://www.digitalocean.com/" target="_blank" rel="noopener">DigitalOcean Droplet</a>
+        via
+        <a href="https://github.com/features/actions" target="_blank" rel="noopener">GitHub Actions</a>;
+        and served with
+        <a href="https://caddyserver.com/" target="_blank" rel="noopener">Caddy</a>, which is configured to auto-update SSL using
+        <a href="https://letsencrypt.org/" target="_blank" rel="noopener">Let's Encrypt</a>.
+    </p>
+
+    <h3>
+        Features
+    </h3>
+    <ul>
+        <li>
+            Server-side templating and routing using the
+            <a href="https://echo.labstack.com/" target="_blank" rel="noopener">Echo framework</a>
+            for Go and Go's standard
+            <a href="https://pkg.go.dev/html/template" target="_blank" rel="noopener">html/template</a> library
+        </li>
+        <li>
+            Partial reloads with
+            <a href="https://htmx.org/" target="_blank" rel="noopener">HTMX</a>
+        </li>
+        <li>
+            Full-text search with pagination using
+            <a href="https://www.sqlite.org" target="_blank" rel="noopener">SQLite</a> with <a href="https://www.sqlite.org/fts5.html" target="_blank" rel="noopener">FTS5</a>
+            and <a href="https://sqlite.org/fts5.html#the_trigram_tokenizer" target="_blank" rel="noopener">trigram tokenization</a>.
+        </li>
+        <li>
+            Multistage build using
+            <a href="https://docs.docker.com/develop/develop-images/multistage-build/" target="_blank" rel="noopener">Docker</a>
+        </li>
+        <li>
+            Deployment with
+            <a href="https://github.com/features/actions" target="_blank" rel="noopener">GitHub Actions</a>
+        </li>
+    </ul>
+
+    <h3>Purpose</h3>
+    <p>
+        The goal of this project is to create a demo of a simple modern web app without the complexity of a client-side JavaScript framework and the associated build, an <a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping" target="_blank" rel="noopener">ORM</a>, or other (often premature) abstractions and optimizations. With an understanding of how this app works, abstractions can be introduced consciously and deliberately as needed.
+    </p>
+
+    <h3>Learn More...</h3>
+    <p>
+        Check out the
+        <a href="https://github.com/gpspake/simple-web-app" target="_blank" rel="noopener">GitHub repo</a>
+        and follow along with the <a href="https://github.com/gpspake/simple-web-app/commits/main/" target="_blank" rel="noopener">commits</a> to learn how the project was built.
+    </p>
+</div>
 {{ end }}
