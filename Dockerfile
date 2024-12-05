@@ -19,6 +19,11 @@ RUN npm run tailwind
 # Output the generated CSS file to a known location
 RUN mkdir -p /output/static/css && cp -rf ./static/css /output/static/
 
+# Inject CSS file hash into the HTML template to prevent caching across changes
+RUN HASH=$(sha256sum /output/static/css/styles.css | awk '{print $1}') && \
+    sed -i "s|{HASH_PLACEHOLDER}|${HASH}|" ./templates/base.html && \
+    cp -rf ./templates /output/templates
+
 RUN ls -la /output/static
 
 
@@ -43,11 +48,11 @@ FROM debian:bookworm-slim
 
 WORKDIR /app
 
-# Copy the generated Tailwind CSS and Go binary from the previous stages
+# Copy the generated Tailwind CSS, modified themplates, and Go binary from the previous stages
 COPY --from=tailwind-build /output/static ./static
+COPY --from=tailwind-build /output/templates ./templates
 COPY --from=go-build /output/app ./app
 COPY migrations ./migrations
-COPY templates ./templates
 
 # Expose the port that the Go app will listen on (default 8080)
 EXPOSE 8080
