@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"database/sql"
@@ -46,7 +46,7 @@ func TestResetDb(t *testing.T) {
 
 	// Step 2: Call resetDb
 	t.Log("Calling resetDb to delete and recreate the file")
-	resetDb()
+	ResetDb()
 
 	// Verify the file is recreated
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
@@ -81,7 +81,7 @@ func TestRunMigrations(t *testing.T) {
 	}
 	defer db.Close()
 
-	runMigrations(db)
+	RunMigrations(db)
 
 	// Verify migrations
 	rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table'")
@@ -120,7 +120,7 @@ func TestSeedDB(t *testing.T) {
 	defer db.Close()
 
 	createTestTables(db)
-	seedDB(db)
+	SeedDB(db)
 
 	// Verify data in `releases` table
 	rows, err := db.Query("SELECT COUNT(*) FROM releases")

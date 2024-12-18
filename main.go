@@ -2,32 +2,43 @@ package main
 
 import (
 	"log"
+	"os"
+	"path/filepath"
+	"simple-web-app/internal"
 
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/labstack/echo/v4"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-
 	// Initialize SQLite database
-	db, err := initDB()
+	db, err := internal.InitDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize db %v", err)
 	}
 	defer db.Close()
 
-	resetDb()
-	runMigrations(db)
-	seedDB(db)
+	internal.ResetDb()
+	internal.RunMigrations(db)
+	internal.SeedDB(db)
 
 	// Initialize Echo
 	e := echo.New()
 
-	// Load templates
-	e.Renderer = &Template{}
+	// Use environment variable or default to local development path
+	templateDir := os.Getenv("TEMPLATE_DIR")
+	if templateDir == "" {
+		// Default path for local development
+		workingDir, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("Failed to get working directory: %v", err)
+		}
+		templateDir = filepath.Join(workingDir, "internal", "templates")
+	}
 
-	setupRoutes(e, db)
+	// Load templates
+	e.Renderer = &internal.Template{TemplateDir: templateDir}
+
+	internal.SetupRoutes(e, db)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8086"))

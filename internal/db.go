@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"database/sql"
@@ -10,9 +10,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
+	"path/filepath"
 )
 
-func initDB() (*sql.DB, error) {
+func InitDB() (*sql.DB, error) {
 	// Open SQLite database
 	db, err := sql.Open("sqlite3", "./data.db")
 	if err != nil {
@@ -22,7 +23,7 @@ func initDB() (*sql.DB, error) {
 	return db, nil
 }
 
-func resetDb() {
+func ResetDb() {
 	// Define the file name
 	const fileName = "data.db"
 
@@ -53,15 +54,20 @@ func resetDb() {
 	log.Println("File created successfully.")
 }
 
-func runMigrations(db *sql.DB) {
+func RunMigrations(db *sql.DB) {
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 
 	if err != nil {
 		log.Fatalf("Could not create SQLite driver: %v", err)
 	}
 
+	basePath, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Could not get current working directory: %v", err)
+	}
+	migrationsPath := filepath.Join(basePath, "migrations")
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		"file://"+migrationsPath,
 		"sqlite3",
 		driver,
 	)
@@ -250,7 +256,7 @@ func populateReleaseFts(db *sql.DB) {
 	log.Println("Populated Release FTS")
 }
 
-func seedDB(db *sql.DB) {
+func SeedDB(db *sql.DB) {
 	seedReleases(db)
 	seedArtists(db)
 	seedReleaseArtists(db)

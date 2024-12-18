@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func setupRoutes(e *echo.Echo, db *sql.DB) {
+func SetupRoutes(e *echo.Echo, db *sql.DB) {
 	// Serve static files
 	e.Static("/static", "static")
 

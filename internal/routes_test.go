@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"database/sql"
@@ -26,7 +26,7 @@ func TestRoutes(t *testing.T) {
 	seedTestArtists(db)
 	seedTestReleaseArtists(db)
 	populateReleasesFtsTable(db)
-	setupRoutes(e, db)
+	SetupRoutes(e, db)
 
 	t.Run("GET /", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
