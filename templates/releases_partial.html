@@ -22,7 +22,8 @@
     </tbody>
 </table>
 
-<nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6" aria-label="Pagination">
+<nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
+     aria-label="Pagination">
     <div class="hidden sm:block">
         <p class="text-sm text-gray-700">
             Showing
@@ -37,25 +38,25 @@
 
     <div class="flex flex-1 justify-between sm:justify-end">
         {{if .Pagination.PrevUrl}}
-        <a href="{{ .Pagination.PrevUrl }}"
+        <a data-hx-get="{{ .Pagination.PrevUrl }}" data-hx-target="#release-list" data-hx-replace-url="true"
            class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0">
             Previous
         </a>
         {{else}}
         <span class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-300 focus-visible:outline-offset-0 hover:cursor-default">
-                    Previous
-                </span>
+            Previous
+        </span>
         {{end}}
 
         {{if .Pagination.NextUrl}}
-        <a href="{{ .Pagination.NextUrl }}"
+        <a data-hx-get="{{ .Pagination.NextUrl }}" data-hx-target="#release-list" data-hx-replace-url="true"
            class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0">
             Next
         </a>
         {{else}}
         <span class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-300 focus-visible:outline-offset-0 hover:cursor-default">
-                    Next
-                </span>
+            Next
+        </span>
         {{end}}
     </div>
 </nav>
