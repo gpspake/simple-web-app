@@ -14,7 +14,8 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 	e.GET("/", func(c echo.Context) error {
 		// Pass releases to the template
 		data := map[string]interface{}{
-			"Title": "Home Page",
+			"Title":        "Home Page",
+			"CurrentRoute": c.Request().URL.Path,
 		}
 
 		// Render the template or return an error
@@ -28,7 +29,8 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 
 	e.GET("/about", func(c echo.Context) error {
 		data := map[string]interface{}{
-			"Title": "About",
+			"Title":        "About",
+			"CurrentRoute": c.Request().URL.Path,
 		}
 		return c.Render(http.StatusOK, "about", data)
 	})
@@ -56,13 +58,14 @@ func setupRoutes(e *echo.Echo, db *sql.DB) {
 		}
 
 		data := map[string]interface{}{
-			"Title":       "Releases",
-			"Releases":    releases,
-			"Page":        pageStr,
-			"Pagination":  pagination,
-			"IncludeHTMX": true,
+			"Title":        "Releases",
+			"Releases":     releases,
+			"Page":         pageStr,
+			"Pagination":   pagination,
+			"IncludeHTMX":  true,
+			"CurrentRoute": c.Request().URL.Path,
 		}
-		
+
 		return c.Render(http.StatusOK, "releases", data)
 	})
 }

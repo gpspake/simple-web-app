@@ -3,3 +3,4 @@ simple-web-app
 data.db
 tmp
 node_modules
+static/css/styles.css
