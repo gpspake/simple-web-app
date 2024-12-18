@@ -43,9 +43,10 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 	} else {
 		// Load base template and content template
 		tmpl, err = template.ParseFiles(
-			"templates/base.html",     // Base layout
-			"templates/nav.html",      // Nav template
-			"templates/"+name+".html", // Content file
+			"templates/base.html",             // Base layout
+			"templates/nav.html",              // Nav template
+			"templates/releases_partial.html", // Include releases_partial
+			"templates/"+name+".html",         // Content file
 		)
 	}
 

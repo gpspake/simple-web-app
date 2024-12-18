@@ -17,75 +17,7 @@
 
 
 <div id="release-list">
-    <!--Releases Table-->
-    <table class="min-w-full divide-y divide-gray-300">
-        <thead>
-        <tr>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">ID</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Name</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Year</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Artist</th>
-        </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 bg-white">
-
-        {{range .Releases}}
-        <tr>
-            <td class="px-3 py-4 text-sm text-gray-500">{{.release_id}}</td>
-            <td class="px-3 py-4 text-sm text-gray-500">{{.release_name}}</td>
-            <td class="px-3 py-4 text-sm text-gray-500">{{.release_year}}</td>
-            <td class="px-3 py-4 text-sm text-gray-500">{{.artist_name}}</td>
-        </tr>
-        {{end}}
-        </tbody>
-    </table>
-
-    <!--Pagination-->
-    <nav class="flex items-center justify-between border-t border-gray-200 bg-white py-3" aria-label="Pagination">
-        <div class="hidden sm:block">
-            <div class="flex flex-1">
-                <p class="text-sm text-gray-700">
-                    Page <span class="font-medium">{{ .Pagination.Page }}</span> of <span class="font-medium">{{ .Pagination.TotalPages }}</span>
-                </p>
-                <p class="text-sm text-gray-300 px-2">|</p>
-                <p class="text-sm text-gray-700">
-                    Showing
-                    <span class="font-medium">{{ .Pagination.First }}</span>
-                    to
-                    <span class="font-medium">{{ .Pagination.Last }}</span>
-                    of
-                    <span class="font-medium">{{ .Pagination.TotalCount }}</span>
-                    results
-                </p>
-            </div>
-        </div>
-
-        <!--Previous button-->
-        <div class="flex flex-1 justify-between sm:justify-end">
-            {{if .Pagination.PrevUrl}}
-            <a href="{{ .Pagination.PrevUrl }}"
-               class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0">
-                Previous
-            </a>
-            {{else}}
-            <span class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-300 focus-visible:outline-offset-0 hover:cursor-default">
-                Previous
-            </span>
-            {{end}}
-
-            <!--Next button-->
-            {{if .Pagination.NextUrl}}
-            <a href="{{ .Pagination.NextUrl }}"
-               class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0">
-                Next
-            </a>
-            {{else}}
-            <span class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-300 focus-visible:outline-offset-0 hover:cursor-default">
-                Next
-            </span>
-            {{end}}
-        </div>
-    </nav>
+    {{ template "releases_partial.html" . }}
 </div>
 
 {{ end }}
