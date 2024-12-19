@@ -1,6 +1,6 @@
 CREATE TABLE releases
 (
-    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    id   SERIAL PRIMARY KEY,
     name TEXT    NOT NULL,
     year INTEGER NOT NULL
 );

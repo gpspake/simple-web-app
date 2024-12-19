@@ -40,15 +40,17 @@ RUN go mod tidy
 COPY . .
 
 # Build the Go binary (statically linked for deployment)
-RUN CGO_ENABLED=1 GOOS=linux go build -tags "sqlite_fts5" -o /output/app .
-
+RUN CGO_ENABLED=1 GOOS=linux go build -o /output/app ./cmd/main.go
 
 # Stage 3: Final runtime container
 FROM debian:bookworm-slim
 
 WORKDIR /app
 
-# Copy the generated Tailwind CSS, modified templates, and Go binary from the previous stages
+# Install PostgreSQL client for managing the database
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+# Copy the generated Tailwind CSS, modified themplates, and Go binary from the previous stages
 COPY --from=tailwind-build /output/static ./static
 COPY --from=tailwind-build /output/templates ./templates
 COPY --from=go-build /output/app ./app
@@ -59,6 +61,9 @@ ENV TEMPLATE_DIR=/app/templates
 
 # Expose the port that the Go app will listen on (default 8080)
 EXPOSE 8080
+
+# Set the working directory back to /app to ensure migrations are found
+WORKDIR /app
 
 # Run the Go binary when the container starts
 CMD ["./app"]

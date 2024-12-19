@@ -1,0 +1,42 @@
+services:
+  postgres_test:
+    image: postgres:15
+    container_name: postgres_test
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5433:5432" # Expose on a different port to avoid conflicts
+    networks:
+      - test-network
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "testuser", "-d", "testdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  test-runner:
+    image: golang:1.23
+    container_name: test_runner
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+      POSTGRES_HOST: postgres_test
+      MIGRATIONS_PATH: "file:///app/migrations"
+      TEMPLATE_DIR: "/app/internal/templates" # Set TEMPLATE_DIR environment variable
+    networks:
+      - test-network
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ./migrations:/app/migrations
+      - ./internal/templates:/app/internal/templates 
+    command: sh -c "go test ./... -coverpkg=./internal -coverprofile=coverage.out && go tool cover -html=coverage.out -o coverage.html"
+
+networks:
+  test-network:

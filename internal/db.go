@@ -4,78 +4,87 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
-	"path/filepath"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
 )
 
 func InitDB() (*sql.DB, error) {
-	// Open SQLite database
-	db, err := sql.Open("sqlite3", "./data.db")
+	host := os.Getenv("POSTGRES_HOST")
+	user := os.Getenv("POSTGRES_USER")
+	password := os.Getenv("POSTGRES_PASSWORD")
+	dbname := os.Getenv("POSTGRES_DB")
+
+	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, user, password, dbname)
+	db, err := sql.Open("postgres", connStr)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
 
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping PostgreSQL: %w", err)
+	}
+
+	log.Println("Connected to PostgreSQL successfully")
 	return db, nil
 }
 
-func ResetDb() {
-	// Define the file name
-	const fileName = "data.db"
+func resetDb(db *sql.DB) {
+	tables := []string{"releases_fts", "release_artists", "artists", "releases"}
 
-	// Check if the file exists
-	if _, err := os.Stat(fileName); err == nil {
-		// If it exists, delete it
-		log.Println("Deleting existing data.db...")
-		if err := os.Remove(fileName); err != nil {
-			log.Fatalf("Error deleting file: %v", err)
-			return
+	for _, table := range tables {
+		var exists bool
+		query := `
+			SELECT EXISTS (
+				SELECT FROM information_schema.tables
+				WHERE table_name = $1
+			)`
+		err := db.QueryRow(query, table).Scan(&exists)
+		if err != nil {
+			log.Fatalf("Failed to check table existence for %s: %v", table, err)
 		}
-		log.Println("File deleted successfully.")
-	} else if !os.IsNotExist(err) {
-		// Handle other errors from os.Stat
-		log.Fatalf("Error checking file: %v", err)
-		return
+
+		if exists {
+			_, err := db.Exec(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE;", table))
+			if err != nil {
+				log.Fatalf("Failed to truncate table %s: %v", table, err)
+			}
+			log.Printf("Truncated table: %s", table)
+		} else {
+			log.Printf("Table %s does not exist. Skipping.", table)
+		}
 	}
 
-	// Recreate the file
-	log.Println("Recreating data.db...")
-	file, err := os.Create(fileName)
-	if err != nil {
-		log.Fatalf("Error creating file: %v", err)
-		return
-	}
-	defer file.Close()
-
-	log.Println("File created successfully.")
+	log.Println("Database reset successfully!")
 }
 
-func RunMigrations(db *sql.DB) {
-	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
-
+func runMigrations(db *sql.DB) {
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		log.Fatalf("Could not create SQLite driver: %v", err)
+		log.Fatalf("Could not create PostgreSQL driver: %v", err)
 	}
 
-	basePath, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Could not get current working directory: %v", err)
+	// Use environment variable to determine the migrations path
+	migrationsPath := os.Getenv("MIGRATIONS_PATH")
+	if migrationsPath == "" {
+		log.Fatal("MIGRATIONS_PATH environment variable is not set")
 	}
-	migrationsPath := filepath.Join(basePath, "migrations")
+
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+migrationsPath,
-		"sqlite3",
+		migrationsPath,
+		"postgres",
 		driver,
 	)
-
 	if err != nil {
 		log.Fatalf("Could not initialize migrations: %v", err)
 	}
 
+	// Apply migrations
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Fatalf("Could not run migrations: %v", err)
 	}
@@ -84,7 +93,6 @@ func RunMigrations(db *sql.DB) {
 }
 
 func seedReleases(db *sql.DB) {
-	// Seed data for the 'releases' table
 	var releases []struct {
 		Name string
 		Year int
@@ -101,8 +109,7 @@ func seedReleases(db *sql.DB) {
 		})
 	}
 
-	// Prepare the INSERT statement
-	stmt, err := db.Prepare("INSERT INTO releases (name, year) VALUES (?, ?)")
+	stmt, err := db.Prepare("INSERT INTO releases (name, year) VALUES ($1, $2)")
 	if err != nil {
 		log.Fatalf("Failed to prepare statement: %v", err)
 	}
@@ -160,14 +167,12 @@ func seedArtists(db *sql.DB) {
 		{Name: "Janes"},
 	}
 
-	// Prepare the INSERT statement
-	stmt, err := db.Prepare("INSERT INTO artists (name) VALUES (?)")
+	stmt, err := db.Prepare("INSERT INTO artists (name) VALUES ($1)")
 	if err != nil {
 		log.Fatalf("Failed to prepare statement: %v", err)
 	}
 	defer stmt.Close()
 
-	// Insert data into the table
 	for _, artist := range artists {
 		_, err := stmt.Exec(artist.Name)
 		if err != nil {
@@ -177,38 +182,31 @@ func seedArtists(db *sql.DB) {
 		}
 	}
 
-	log.Println("Seeded Releases")
+	log.Println("Seeded Artists")
 }
 
 func seedReleaseArtists(db *sql.DB) {
-	// Seed data for the 'release_artists' table
-	type Artist struct {
-		ReleaseId int
-		ArtistId  int
-	}
-
-	// Seed the release_artists table
-	tx, err := db.Begin() // Use a transaction for better performance
+	tx, err := db.Begin()
 	if err != nil {
 		log.Fatalf("Failed to begin transaction: %v", err)
 	}
 
-	stmt, err := tx.Prepare("INSERT INTO release_artists (id, release_id, artist_id) VALUES (?, ?, ?)")
+	log.Println("Preparing statement for release_artists")
+	stmt, err := tx.Prepare("INSERT INTO release_artists (release_id, artist_id) VALUES ($1, $2)")
 	if err != nil {
 		log.Fatalf("Failed to prepare statement: %v", err)
 	}
-	defer stmt.Close()
+	log.Println("Prepared statement successfully")
 
 	for i := 1; i <= 30; i++ {
-		_, err := stmt.Exec(i, i, i)
+		_, err := stmt.Exec(i, i)
 		if err != nil {
 			log.Printf("Failed to insert row %d: %v", i, err)
 		} else {
-			fmt.Printf("Inserted row: id=%d, release_id=%d, artist_id=%d\n", i, i, i)
+			fmt.Printf("Inserted row: release_id=%d, artist_id=%d\n", i, i)
 		}
 	}
 
-	// Commit the transaction
 	if err := tx.Commit(); err != nil {
 		log.Fatalf("Failed to commit transaction: %v", err)
 	}
@@ -217,35 +215,34 @@ func seedReleaseArtists(db *sql.DB) {
 }
 
 func populateReleaseFts(db *sql.DB) {
-
-	// Populate 'release_fts' virtual table
-	tx, err := db.Begin() // Use a transaction for better performance
+	tx, err := db.Begin()
 	if err != nil {
 		log.Fatalf("Failed to begin transaction: %v", err)
 	}
 
-	stmt, err := tx.Prepare(`
-		INSERT INTO releases_fts (release_id, artist_name, release_name, release_year)
+	// Clear the table to avoid duplicates
+	_, err = tx.Exec("TRUNCATE releases_fts")
+	if err != nil {
+		log.Fatalf("Failed to truncate releases_fts: %v", err)
+	}
+
+	query := `
+		INSERT INTO releases_fts (release_id, release_name, release_year, artist_name, tsvector_column)
 		SELECT
 			releases.id AS release_id,
-			artists.name AS artist_name,
 			releases.name AS release_name,
-			releases.year AS release_year
+			releases.year AS release_year,
+			artists.name AS artist_name,
+			to_tsvector(releases.name || ' ' || artists.name || ' ' || releases.year::TEXT) AS tsvector_column
 		FROM
 			release_artists
-				JOIN
-			artists ON release_artists.artist_id = artists.id
-				JOIN
-			releases ON release_artists.release_id = releases.id;
-	`)
-	if err != nil {
-		log.Fatalf("Failed to prepare statement: %v", err)
-	}
-	defer stmt.Close()
+		JOIN releases ON release_artists.release_id = releases.id
+		JOIN artists ON release_artists.artist_id = artists.id;
+	`
 
-	_, err = stmt.Exec()
+	_, err = tx.Exec(query)
 	if err != nil {
-		log.Printf("Failed to execute releases_fts query %v", err)
+		log.Fatalf("Failed to populate releases_fts: %v", err)
 	}
 
 	// Commit the transaction

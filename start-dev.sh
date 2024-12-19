@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Run postgres in a container and run the go app locally
+# Run postgres in a container and run the go app locally using air for auto reloading
 
 # PostgreSQL container details
 POSTGRES_CONTAINER_NAME="go_app_postgres"
@@ -37,9 +37,11 @@ export POSTGRES_PORT="$POSTGRES_PORT"
 export TEMPLATE_DIR="$(pwd)/internal/templates" # Set the templates path for local runs
 export MIGRATIONS_PATH="file://$(pwd)/migrations" # Set the migrations path for local runs
 
+
+
 # Run the Go application
 echo "Starting the Go application..."
-go run ./cmd/main.go
+air -c .air.toml & npm run tailwind:watch
 
 # Cleanup: Stop and remove the PostgreSQL container when the script exits
 cleanup() {
