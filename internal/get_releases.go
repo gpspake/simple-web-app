@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
 
 func getReleasesCount(db *sql.DB, searchQuery string) (int, error) {
 	query := "SELECT COUNT(*) FROM releases_fts"
 	var args []interface{}
 	if searchQuery != "" {
-		query = "SELECT COUNT(*) FROM releases_fts WHERE releases_fts MATCH ?"
+		query = "SELECT COUNT(*) FROM releases_fts WHERE to_tsvector(release_name || ' ' || artist_name) @@ plainto_tsquery($1)"
 		args = append(args, searchQuery)
 	}
 	var count int
@@ -44,6 +45,9 @@ func getPaginatedReleases(
 		totalCount,
 		request,
 	)
+	if err != nil {
+		logger.Printf("Failed to get pagination: %v", err)
+	}
 
 	releases, err := getReleases(db, pagination.Limit, pagination.Offset, searchQuery, logger)
 
@@ -61,6 +65,8 @@ func getReleases(db *sql.DB, limit int, offset int, searchQuery string, logger e
 
 	var query string
 	var args []interface{}
+	searchQuery = sanitizeQuery(searchQuery)
+
 	if searchQuery != "" {
 		query = `
 		SELECT
@@ -69,10 +75,10 @@ func getReleases(db *sql.DB, limit int, offset int, searchQuery string, logger e
 			release_year,
 			artist_name
 		FROM releases_fts
-		WHERE releases_fts MATCH ?
+		WHERE tsvector_column @@ plainto_tsquery($1)
 		ORDER BY release_year ASC
-		LIMIT ?
-		OFFSET ?;
+		LIMIT $2
+		OFFSET $3;
 		`
 		args = append(args, searchQuery, limit, offset)
 	} else {
@@ -84,11 +90,13 @@ func getReleases(db *sql.DB, limit int, offset int, searchQuery string, logger e
 			artist_name
 		FROM releases_fts
 		ORDER BY release_year ASC
-		LIMIT ?
-		OFFSET ?;
+		LIMIT $1
+		OFFSET $2;
 		`
 		args = append(args, limit, offset)
 	}
+
+	logger.Printf("Executing query: %s with args: %v", query, args)
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -113,4 +121,8 @@ func getReleases(db *sql.DB, limit int, offset int, searchQuery string, logger e
 	}
 
 	return items, nil
+}
+
+func sanitizeQuery(query string) string {
+	return strings.TrimSpace(query)
 }
