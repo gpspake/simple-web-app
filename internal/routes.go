@@ -95,4 +95,30 @@ func SetupRoutes(e *echo.Echo, db DBQuerier) {
 
 		return c.Render(http.StatusOK, "artist", data)
 	})
+
+	e.GET("/release/:release_id", func(c echo.Context) error {
+		// Parse release ID from the route
+		releaseID, err := strconv.Atoi(c.Param("release_id"))
+		if err != nil || releaseID <= 0 {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid release ID"})
+		}
+
+		// fetch release details
+		release, err := getRelease(db, releaseID, c.Logger())
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return c.JSON(http.StatusNotFound, map[string]string{"error": "release not found"})
+			}
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to fetch release details"})
+		}
+
+		// Prepare data for the template
+		data := map[string]interface{}{
+			"Title":        "Release Details",
+			"CurrentRoute": c.Request().URL.Path,
+			"Release":      release, // Pass the release struct to the template
+		}
+
+		return c.Render(http.StatusOK, "release", data)
+	})
 }
