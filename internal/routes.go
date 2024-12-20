@@ -1,12 +1,11 @@
 package internal
 
 import (
-	"database/sql"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-func SetupRoutes(e *echo.Echo, db *sql.DB) {
+func SetupRoutes(e *echo.Echo, db DBQuerier) {
 	// Serve static files
 	e.Static("/static", "static")
 

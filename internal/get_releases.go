@@ -1,30 +1,30 @@
 package internal
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
 )
 
-func getReleasesCount(db *sql.DB, searchQuery string) (int, error) {
+func getReleasesCount(db DBQuerier, searchQuery string) (int, error) {
 	query := "SELECT COUNT(*) FROM releases_fts"
 	var args []interface{}
 	if searchQuery != "" {
 		query = "SELECT COUNT(*) FROM releases_fts WHERE to_tsvector(release_name || ' ' || artist_name) @@ plainto_tsquery($1)"
 		args = append(args, searchQuery)
 	}
+
 	var count int
 	err := db.QueryRow(query, args...).Scan(&count)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get releases count: %w", err)
 	}
 	return count, nil
 }
 
 func getPaginatedReleases(
-	db *sql.DB,
+	db DBQuerier,
 	pageStr string,
 	limitStr string,
 	searchQuery string,
@@ -54,8 +54,7 @@ func getPaginatedReleases(
 	return releases, pagination, err
 }
 
-func getReleases(db *sql.DB, limit int, offset int, searchQuery string, logger echo.Logger) ([]map[string]interface{}, error) {
-	// Validate inputs
+func getReleases(db DBQuerier, limit int, offset int, searchQuery string, logger echo.Logger) ([]map[string]interface{}, error) { // Validate inputs
 	if limit <= 0 {
 		return nil, fmt.Errorf("invalid limit: %d", limit)
 	}

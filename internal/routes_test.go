@@ -2,7 +2,9 @@ package internal
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -53,8 +54,56 @@ func TestRoutes(t *testing.T) {
 		assert.Contains(t, rec.Body.String(), "Home Page")
 	})
 
+	t.Run("GET / - Rendering Error", func(t *testing.T) {
+		// Simulate a rendering error by using a faulty renderer
+		e.Renderer = &FaultyRenderer{}
+		defer func() { e.Renderer = &Template{TemplateDir: templateDir} }() // Restore the original renderer
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		assert.Contains(t, rec.Body.String(), "forced rendering error") // Adjusted expectation
+	})
+
+	t.Run("GET /about - Rendering Error", func(t *testing.T) {
+		e.Renderer = &FaultyRenderer{}
+		defer func() { e.Renderer = &Template{TemplateDir: templateDir} }()
+
+		req := httptest.NewRequest(http.MethodGet, "/about", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		assert.Contains(t, rec.Body.String(), "Internal Server Error") // Adjusted expectation
+	})
+
 	t.Run("GET /releases", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/releases", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "Album 1")
+		assert.Contains(t, rec.Body.String(), "1991")
+	})
+
+	t.Run("GET / - Rendering Error", func(t *testing.T) {
+		e.Renderer = &FaultyRenderer{}
+		defer func() { e.Renderer = &Template{TemplateDir: templateDir} }() // Restore the original renderer
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		assert.Contains(t, rec.Body.String(), "forced rendering error") // Adjusted expectation
+	})
+
+	t.Run("GET /releases - HTMX Partial", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/releases", nil)
+		req.Header.Set("HX-Request", "true")
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 
@@ -70,6 +119,29 @@ func TestRoutes(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 	})
+}
+
+// FaultyRenderer simulates a rendering error
+type FaultyRenderer struct{}
+
+// Render forces a rendering error
+func (r *FaultyRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return errors.New("forced rendering error")
+}
+
+// BrokenDB simulates a database error
+type BrokenDB struct{}
+
+func (b *BrokenDB) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return nil, errors.New("forced query error")
+}
+
+func (b *BrokenDB) QueryRow(query string, args ...interface{}) *sql.Row {
+	return &sql.Row{} // Simulate empty row
+}
+
+func (b *BrokenDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return nil, errors.New("forced database error")
 }
 
 func seedTestReleases(db *sql.DB) {
