@@ -94,22 +94,22 @@ func runMigrations(db *sql.DB) {
 
 func seedReleases(db *sql.DB) {
 	var releases []struct {
-		Name string
-		Year int
+		Title string
+		Year  int
 	}
 
 	startYear := 1991
 	for i := 1; i <= 30; i++ {
 		releases = append(releases, struct {
-			Name string
-			Year int
+			Title string
+			Year  int
 		}{
-			Name: fmt.Sprintf("Album %d", i),
-			Year: startYear + (i - 1),
+			Title: fmt.Sprintf("Album %d", i),
+			Year:  startYear + (i - 1),
 		})
 	}
 
-	stmt, err := db.Prepare("INSERT INTO releases (name, year) VALUES ($1, $2)")
+	stmt, err := db.Prepare("INSERT INTO releases (title, year) VALUES ($1, $2)")
 	if err != nil {
 		log.Fatalf("Failed to prepare statement: %v", err)
 	}
@@ -117,11 +117,11 @@ func seedReleases(db *sql.DB) {
 
 	// Insert data into the table
 	for _, release := range releases {
-		_, err := stmt.Exec(release.Name, release.Year)
+		_, err := stmt.Exec(release.Title, release.Year)
 		if err != nil {
-			log.Printf("Failed to insert release '%s': %v", release.Name, err)
+			log.Printf("Failed to insert release '%s': %v", release.Title, err)
 		} else {
-			log.Printf("Successfully inserted release: '%s'", release.Name)
+			log.Printf("Successfully inserted release: '%s'", release.Title)
 		}
 	}
 
@@ -227,13 +227,13 @@ func populateReleaseFts(db *sql.DB) {
 	}
 
 	query := `
-		INSERT INTO releases_fts (release_id, release_name, release_year, artist_name, tsvector_column)
+		INSERT INTO releases_fts (release_id, release_title, release_year, artist_name, tsvector_column)
 		SELECT
 			releases.id AS release_id,
-			releases.name AS release_name,
+			releases.title AS release_title,
 			releases.year AS release_year,
 			artists.name AS artist_name,
-			to_tsvector(releases.name || ' ' || artists.name || ' ' || releases.year::TEXT) AS tsvector_column
+			to_tsvector(releases.title || ' ' || artists.name || ' ' || releases.year::TEXT) AS tsvector_column
 		FROM
 			release_artists
 		JOIN releases ON release_artists.release_id = releases.id

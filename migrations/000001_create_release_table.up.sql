@@ -1,6 +1,6 @@
 CREATE TABLE releases
 (
-    id   SERIAL PRIMARY KEY,
-    name TEXT    NOT NULL,
-    year INTEGER NOT NULL
+    id    SERIAL PRIMARY KEY,
+    title TEXT    NOT NULL,
+    year  INTEGER NOT NULL
 );

@@ -11,7 +11,7 @@ func getReleasesCount(db DBQuerier, searchQuery string) (int, error) {
 	query := "SELECT COUNT(*) FROM releases_fts"
 	var args []interface{}
 	if searchQuery != "" {
-		query = "SELECT COUNT(*) FROM releases_fts WHERE to_tsvector(release_name || ' ' || artist_name) @@ plainto_tsquery($1)"
+		query = "SELECT COUNT(*) FROM releases_fts WHERE to_tsvector(release_title || ' ' || artist_name) @@ plainto_tsquery($1)"
 		args = append(args, searchQuery)
 	}
 
@@ -70,7 +70,7 @@ func getReleases(db DBQuerier, limit int, offset int, searchQuery string, logger
 		query = `
 		SELECT
 			release_id,
-			release_name,
+			release_title,
 			release_year,
 			artist_name
 		FROM releases_fts
@@ -84,7 +84,7 @@ func getReleases(db DBQuerier, limit int, offset int, searchQuery string, logger
 		query = `
 		SELECT
 			release_id,
-			release_name,
+			release_title,
 			release_year,
 			artist_name
 		FROM releases_fts
@@ -105,17 +105,17 @@ func getReleases(db DBQuerier, limit int, offset int, searchQuery string, logger
 	var items []map[string]interface{}
 	for rows.Next() {
 		var releaseId int
-		var releaseName, artistName, releaseYear string
-		err := rows.Scan(&releaseId, &releaseName, &releaseYear, &artistName)
+		var releaseTitle, artistName, releaseYear string
+		err := rows.Scan(&releaseId, &releaseTitle, &releaseYear, &artistName)
 		if err != nil {
 			return nil, err
 		}
 
 		items = append(items, map[string]interface{}{
-			"release_id":   releaseId,
-			"artist_name":  artistName,
-			"release_year": releaseYear,
-			"release_name": releaseName,
+			"release_id":    releaseId,
+			"artist_name":   artistName,
+			"release_year":  releaseYear,
+			"release_title": releaseTitle,
 		})
 	}
 

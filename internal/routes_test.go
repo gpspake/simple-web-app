@@ -148,7 +148,7 @@ func seedTestReleases(db *sql.DB) {
 	startYear := 1991
 	for i := 1; i <= 30; i++ {
 		_, err := db.Exec(
-			"INSERT INTO releases (name, year) VALUES ($1, $2)",
+			"INSERT INTO releases (title, year) VALUES ($1, $2)",
 			fmt.Sprintf("Album %d", i), startYear+(i-1),
 		)
 		if err != nil {
