@@ -36,7 +36,7 @@ func TestResetDb(t *testing.T) {
 	resetDb(db)
 
 	// Verify tables are empty
-	tables := []string{"releases", "artists", "release_artists", "releases_fts"}
+	tables := []string{"release", "artist", "release_artist", "release_fts"}
 	for _, table := range tables {
 		var count int
 		err := db.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count)
@@ -60,7 +60,7 @@ func TestRunMigrations(t *testing.T) {
 	runMigrations(db)
 
 	// Verify migrations
-	tables := []string{"releases", "artists", "release_artists", "releases_fts"}
+	tables := []string{"release", "artist", "release_artist", "release_fts"}
 	for _, table := range tables {
 		var exists bool
 		query := `
@@ -90,31 +90,31 @@ func TestSeedDB(t *testing.T) {
 	runMigrations(db)
 	SeedDB(db)
 
-	// Verify data in `releases` table
+	// Verify data in `release` table
 	var count int
-	err = db.QueryRow("SELECT COUNT(*) FROM releases").Scan(&count)
+	err = db.QueryRow("SELECT COUNT(*) FROM release").Scan(&count)
 	if err != nil {
-		t.Fatalf("Failed to query releases table: %v", err)
+		t.Fatalf("Failed to query release table: %v", err)
 	}
 	if count != 30 {
 		t.Errorf("Expected 30 releases, but got %d", count)
 	}
 
-	// Verify data in `artists` table
-	err = db.QueryRow("SELECT COUNT(*) FROM artists").Scan(&count)
+	// Verify data in `artist` table
+	err = db.QueryRow("SELECT COUNT(*) FROM artist").Scan(&count)
 	if err != nil {
-		t.Fatalf("Failed to query artists table: %v", err)
+		t.Fatalf("Failed to query artist table: %v", err)
 	}
 	if count != 30 {
 		t.Errorf("Expected 30 artists, but got %d", count)
 	}
 
-	// Verify data in `release_artists` table
-	err = db.QueryRow("SELECT COUNT(*) FROM release_artists").Scan(&count)
+	// Verify data in `release_artist` table
+	err = db.QueryRow("SELECT COUNT(*) FROM release_artist").Scan(&count)
 	if err != nil {
-		t.Fatalf("Failed to query release_artists table: %v", err)
+		t.Fatalf("Failed to query release_artist table: %v", err)
 	}
 	if count != 30 {
-		t.Errorf("Expected 30 release_artists, but got %d", count)
+		t.Errorf("Expected 30 release_artist, but got %d", count)
 	}
 }

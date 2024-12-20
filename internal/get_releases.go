@@ -8,10 +8,10 @@ import (
 )
 
 func getReleasesCount(db DBQuerier, searchQuery string) (int, error) {
-	query := "SELECT COUNT(*) FROM releases_fts"
+	query := "SELECT COUNT(*) FROM release_fts"
 	var args []interface{}
 	if searchQuery != "" {
-		query = "SELECT COUNT(*) FROM releases_fts WHERE to_tsvector(release_title || ' ' || artist_name) @@ plainto_tsquery($1)"
+		query = "SELECT COUNT(*) FROM release_fts WHERE to_tsvector(release_title || ' ' || artist_name) @@ plainto_tsquery($1)"
 		args = append(args, searchQuery)
 	}
 
@@ -73,7 +73,7 @@ func getReleases(db DBQuerier, limit int, offset int, searchQuery string, logger
 			release_title,
 			release_year,
 			artist_name
-		FROM releases_fts
+		FROM release_fts
 		WHERE tsvector_column @@ plainto_tsquery($1)
 		ORDER BY release_year ASC
 		LIMIT $2
@@ -87,7 +87,7 @@ func getReleases(db DBQuerier, limit int, offset int, searchQuery string, logger
 			release_title,
 			release_year,
 			artist_name
-		FROM releases_fts
+		FROM release_fts
 		ORDER BY release_year ASC
 		LIMIT $1
 		OFFSET $2;

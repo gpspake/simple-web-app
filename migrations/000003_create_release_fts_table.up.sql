@@ -1,4 +1,4 @@
-CREATE TABLE releases_fts
+CREATE TABLE release_fts
 (
     id              SERIAL PRIMARY KEY,
     release_id      INTEGER NOT NULL,
@@ -9,8 +9,8 @@ CREATE TABLE releases_fts
 );
 
 -- Populate the tsvector column
-UPDATE releases_fts
+UPDATE release_fts
 SET tsvector_column = to_tsvector(release_title || ' ' || artist_name || ' ' || release_year::TEXT);
 
 -- Add an index for full-text search
-CREATE INDEX idx_releases_fts_tsvector ON releases_fts USING gin (tsvector_column);
+CREATE INDEX idx_release_fts_tsvector ON release_fts USING gin (tsvector_column);

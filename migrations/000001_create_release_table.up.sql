@@ -1,4 +1,4 @@
-CREATE TABLE releases
+CREATE TABLE release
 (
     id    SERIAL PRIMARY KEY,
     title TEXT    NOT NULL,

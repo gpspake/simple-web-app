@@ -35,7 +35,7 @@ func InitDB() (*sql.DB, error) {
 }
 
 func resetDb(db *sql.DB) {
-	tables := []string{"releases_fts", "release_artists", "artists", "releases"}
+	tables := []string{"release_fts", "release_artist", "artist", "release"}
 
 	for _, table := range tables {
 		var exists bool
@@ -109,7 +109,7 @@ func seedReleases(db *sql.DB) {
 		})
 	}
 
-	stmt, err := db.Prepare("INSERT INTO releases (title, year) VALUES ($1, $2)")
+	stmt, err := db.Prepare("INSERT INTO release (title, year) VALUES ($1, $2)")
 	if err != nil {
 		log.Fatalf("Failed to prepare statement: %v", err)
 	}
@@ -129,7 +129,7 @@ func seedReleases(db *sql.DB) {
 }
 
 func seedArtists(db *sql.DB) {
-	// Seed data for the 'artists' table
+	// Seed data for the 'artist' table
 	type Artist struct {
 		Name string
 	}
@@ -167,7 +167,7 @@ func seedArtists(db *sql.DB) {
 		{Name: "Janes"},
 	}
 
-	stmt, err := db.Prepare("INSERT INTO artists (name) VALUES ($1)")
+	stmt, err := db.Prepare("INSERT INTO artist (name) VALUES ($1)")
 	if err != nil {
 		log.Fatalf("Failed to prepare statement: %v", err)
 	}
@@ -191,8 +191,8 @@ func seedReleaseArtists(db *sql.DB) {
 		log.Fatalf("Failed to begin transaction: %v", err)
 	}
 
-	log.Println("Preparing statement for release_artists")
-	stmt, err := tx.Prepare("INSERT INTO release_artists (release_id, artist_id) VALUES ($1, $2)")
+	log.Println("Preparing statement for release_artist")
+	stmt, err := tx.Prepare("INSERT INTO release_artist (release_id, artist_id) VALUES ($1, $2)")
 	if err != nil {
 		log.Fatalf("Failed to prepare statement: %v", err)
 	}
@@ -211,7 +211,7 @@ func seedReleaseArtists(db *sql.DB) {
 		log.Fatalf("Failed to commit transaction: %v", err)
 	}
 
-	log.Println("Seeded release_artists")
+	log.Println("Seeded release_artist")
 }
 
 func populateReleaseFts(db *sql.DB) {
@@ -221,28 +221,28 @@ func populateReleaseFts(db *sql.DB) {
 	}
 
 	// Clear the table to avoid duplicates
-	_, err = tx.Exec("TRUNCATE releases_fts")
+	_, err = tx.Exec("TRUNCATE release_fts")
 	if err != nil {
-		log.Fatalf("Failed to truncate releases_fts: %v", err)
+		log.Fatalf("Failed to truncate release_fts: %v", err)
 	}
 
 	query := `
-		INSERT INTO releases_fts (release_id, release_title, release_year, artist_name, tsvector_column)
+		INSERT INTO release_fts (release_id, release_title, release_year, artist_name, tsvector_column)
 		SELECT
-			releases.id AS release_id,
-			releases.title AS release_title,
-			releases.year AS release_year,
-			artists.name AS artist_name,
-			to_tsvector(releases.title || ' ' || artists.name || ' ' || releases.year::TEXT) AS tsvector_column
+			release.id AS release_id,
+			release.title AS release_title,
+			release.year AS release_year,
+			artist.name AS artist_name,
+			to_tsvector(release.title || ' ' || artist.name || ' ' || release.year::TEXT) AS tsvector_column
 		FROM
-			release_artists
-		JOIN releases ON release_artists.release_id = releases.id
-		JOIN artists ON release_artists.artist_id = artists.id;
+			release_artist
+		JOIN release ON release_artist.release_id = release.id
+		JOIN artist ON release_artist.artist_id = artist.id;
 	`
 
 	_, err = tx.Exec(query)
 	if err != nil {
-		log.Fatalf("Failed to populate releases_fts: %v", err)
+		log.Fatalf("Failed to populate release_fts: %v", err)
 	}
 
 	// Commit the transaction

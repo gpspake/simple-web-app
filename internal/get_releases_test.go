@@ -61,7 +61,7 @@ func testSeedReleases(db *sql.DB) {
 	startYear := 1991
 	for i := 1; i <= 30; i++ {
 		_, err := db.Exec(
-			"INSERT INTO releases (title, year) VALUES ($1, $2)",
+			"INSERT INTO release (title, year) VALUES ($1, $2)",
 			fmt.Sprintf("Album %d", i), startYear+(i-1),
 		)
 		if err != nil {
@@ -72,7 +72,7 @@ func testSeedReleases(db *sql.DB) {
 
 func testSeedArtists(db *sql.DB) {
 	for i := 1; i <= 30; i++ {
-		_, err := db.Exec("INSERT INTO artists (title) VALUES ($1)", fmt.Sprintf("Artist %d", i))
+		_, err := db.Exec("INSERT INTO artist (name) VALUES ($1)", fmt.Sprintf("Artist %d", i))
 		if err != nil {
 			panic(fmt.Sprintf("Failed to seed artists: %v", err))
 		}
@@ -81,9 +81,9 @@ func testSeedArtists(db *sql.DB) {
 
 func testSeedReleaseArtists(db *sql.DB) {
 	for i := 1; i <= 30; i++ {
-		_, err := db.Exec("INSERT INTO release_artists (release_id, artist_id) VALUES ($1, $2)", i, i)
+		_, err := db.Exec("INSERT INTO release_artist (release_id, artist_id) VALUES ($1, $2)", i, i)
 		if err != nil {
-			panic(fmt.Sprintf("Failed to seed release_artists: %v", err))
+			panic(fmt.Sprintf("Failed to seed release_artist: %v", err))
 		}
 	}
 }
