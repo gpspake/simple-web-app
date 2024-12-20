@@ -3,6 +3,8 @@ package internal
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 func SetupRoutes(e *echo.Echo, db DBQuerier) {
@@ -66,5 +68,31 @@ func SetupRoutes(e *echo.Echo, db DBQuerier) {
 		}
 
 		return c.Render(http.StatusOK, "releases", data)
+	})
+
+	e.GET("/artist/:artist_id", func(c echo.Context) error {
+		// Parse artist ID from the route
+		artistID, err := strconv.Atoi(c.Param("artist_id"))
+		if err != nil || artistID <= 0 {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid artist ID"})
+		}
+
+		// Call getArtist to fetch artist details
+		artist, err := getArtist(db, artistID, c.Logger())
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return c.JSON(http.StatusNotFound, map[string]string{"error": "artist not found"})
+			}
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to fetch artist details"})
+		}
+
+		// Prepare data for the template
+		data := map[string]interface{}{
+			"Title":        "Artist Details",
+			"CurrentRoute": c.Request().URL.Path,
+			"Artist":       artist, // Pass the artist struct to the template
+		}
+
+		return c.Render(http.StatusOK, "artist", data)
 	})
 }
