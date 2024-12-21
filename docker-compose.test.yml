@@ -36,7 +36,7 @@ services:
       - .:/app
       - ./migrations:/app/migrations
       - ./internal/templates:/app/internal/templates 
-    command: sh -c "go test ./... -coverpkg=./internal -coverprofile=coverage.out && go tool cover -html=coverage.out -o coverage.html"
+    command: sh -c "go test -v ./... -coverpkg=./internal -coverprofile=coverage.out && go tool cover -html=coverage.out -o coverage.html"
 
 networks:
   test-network:

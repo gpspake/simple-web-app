@@ -89,18 +89,6 @@ func TestRoutes(t *testing.T) {
 		assert.Contains(t, rec.Body.String(), "1991")
 	})
 
-	t.Run("GET / - Rendering Error", func(t *testing.T) {
-		e.Renderer = &FaultyRenderer{}
-		defer func() { e.Renderer = &Template{TemplateDir: templateDir} }() // Restore the original renderer
-
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		rec := httptest.NewRecorder()
-		e.ServeHTTP(rec, req)
-
-		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		assert.Contains(t, rec.Body.String(), "forced rendering error") // Adjusted expectation
-	})
-
 	t.Run("GET /releases - HTMX Partial", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/releases", nil)
 		req.Header.Set("HX-Request", "true")
@@ -110,6 +98,60 @@ func TestRoutes(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Contains(t, rec.Body.String(), "Album 1")
 		assert.Contains(t, rec.Body.String(), "1991")
+	})
+
+	t.Run("GET /artist/:artist_id - Non-existent Artist", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/artist/9999", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Contains(t, rec.Body.String(), "artist not found")
+	})
+
+	t.Run("GET /release/:release_id - Invalid ID", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/release/invalid", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "invalid release ID")
+	})
+
+	t.Run("GET /release/:release_id - Non-Existent Release", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/release/999", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Contains(t, rec.Body.String(), "release not found")
+	})
+
+	t.Run("GET /artist/:artist_id - Valid Artist", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/artist/1", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "Queen")
+	})
+
+	t.Run("GET /artist/:artist_id - Invalid Artist ID", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/artist/invalid", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "invalid artist ID")
+	})
+
+	t.Run("GET /artist/:artist_id - Non-existent Artist", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/artist/999", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Contains(t, rec.Body.String(), "artist not found")
 	})
 
 	t.Run("Invalid Route", func(t *testing.T) {

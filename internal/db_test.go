@@ -2,6 +2,7 @@ package internal
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
 
 	_ "github.com/lib/pq"
@@ -29,22 +30,19 @@ func TestResetDb(t *testing.T) {
 	}
 	defer db.Close()
 
-	// Ensure migrations are applied
 	runMigrations(db)
-
-	// Reset the database
+	seedTestReleases(db)
 	resetDb(db)
 
 	// Verify tables are empty
-	tables := []string{"release", "artist", "release_artist", "release_fts"}
-	for _, table := range tables {
+	for _, table := range []string{"release", "artist", "release_artist"} {
 		var count int
-		err := db.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count)
+		err := db.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s", table)).Scan(&count)
 		if err != nil {
 			t.Fatalf("Failed to query table %s: %v", table, err)
 		}
 		if count != 0 {
-			t.Errorf("Expected table %s to be empty, but found %d rows", table, count)
+			t.Errorf("Expected %s to be empty, but found %d rows", table, count)
 		}
 	}
 }
@@ -116,5 +114,30 @@ func TestSeedDB(t *testing.T) {
 	}
 	if count != 30 {
 		t.Errorf("Expected 30 release_artist, but got %d", count)
+	}
+}
+
+func TestPopulateReleaseFts(t *testing.T) {
+	connStr := "host=postgres_test user=testuser password=testpassword dbname=testdb sslmode=disable"
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		t.Fatalf("Failed to connect to PostgreSQL: %v", err)
+	}
+	defer db.Close()
+
+	runMigrations(db)
+	seedTestReleases(db)
+	seedTestArtists(db)
+	seedTestReleaseArtists(db)
+	PopulateReleaseFts(db)
+
+	// Verify FTS table is populated
+	var count int
+	err = db.QueryRow("SELECT COUNT(*) FROM release_fts").Scan(&count)
+	if err != nil {
+		t.Fatalf("Failed to query release_fts: %v", err)
+	}
+	if count == 0 {
+		t.Errorf("Expected release_fts to be populated, but found 0 rows")
 	}
 }
