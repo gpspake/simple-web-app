@@ -92,6 +92,36 @@ func runMigrations(db *sql.DB) {
 	log.Println("Migrations applied successfully!")
 }
 
+func seedRoles(db *sql.DB) {
+	// Seed data for the 'artist' table
+	type Role struct {
+		Name string
+	}
+
+	var roles = []Role{
+		{Name: "Album Artist"},
+		{Name: "Executive Producer"},
+		{Name: "Mastered By"},
+	}
+
+	stmt, err := db.Prepare("INSERT INTO role (name) VALUES ($1)")
+	if err != nil {
+		log.Fatalf("Failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+
+	for _, role := range roles {
+		_, err := stmt.Exec(role.Name)
+		if err != nil {
+			log.Printf("Failed to insert role '%s': %v", role.Name, err)
+		} else {
+			log.Printf("Successfully inserted role: '%s'", role.Name)
+		}
+	}
+
+	log.Println("Seeded Roles")
+}
+
 func seedReleases(db *sql.DB) {
 	var releases []struct {
 		Title string
@@ -255,6 +285,7 @@ func PopulateReleaseFts(db *sql.DB) {
 
 func SeedDB(db *sql.DB) {
 	seedReleases(db)
+	seedRoles(db)
 	seedArtists(db)
 	seedReleaseArtists(db)
 	PopulateReleaseFts(db)
