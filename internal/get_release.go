@@ -10,6 +10,7 @@ import (
 type Release struct {
 	ID    int    `json:"id"`
 	Title string `json:"title"`
+	Year  string `json:"year"`
 }
 
 // getRelease retrieves release information by ID from the database.
@@ -21,7 +22,7 @@ func getRelease(db DBQuerier, releaseID int, logger echo.Logger) (*Release, erro
 
 	// Query to retrieve release information
 	query := `
-		SELECT id, title
+		SELECT id, title, year
 		FROM release
 		WHERE id = $1;
 	`
@@ -30,7 +31,7 @@ func getRelease(db DBQuerier, releaseID int, logger echo.Logger) (*Release, erro
 
 	// Execute the query
 	var release Release
-	err := db.QueryRow(query, releaseID).Scan(&release.ID, &release.Title)
+	err := db.QueryRow(query, releaseID).Scan(&release.ID, &release.Title, &release.Year)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("release with ID %d not found", releaseID)

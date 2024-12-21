@@ -19,10 +19,10 @@ func TestGetRelease(t *testing.T) {
 	logger := e.Logger
 
 	// Define the expected query and result for a valid release
-	expectedQuery := "SELECT id, title FROM release WHERE id = $1;"
+	expectedQuery := "SELECT id, title, year FROM release WHERE id = $1;"
 	mock.ExpectQuery(expectedQuery).
 		WithArgs(1).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "title"}).AddRow(1, "Bohemian Rhapsody"))
+		WillReturnRows(sqlmock.NewRows([]string{"id", "title", "year"}).AddRow(1, "Bohemian Rhapsody", 1975))
 
 	// Test valid release retrieval
 	release, err := getRelease(db, 1, logger)
@@ -30,6 +30,7 @@ func TestGetRelease(t *testing.T) {
 	assert.NotNil(t, release)
 	assert.Equal(t, 1, release.ID)
 	assert.Equal(t, "Bohemian Rhapsody", release.Title)
+	assert.Equal(t, "1975", release.Year)
 
 	// Define the expected query for a non-existent release
 	mock.ExpectQuery(expectedQuery).
