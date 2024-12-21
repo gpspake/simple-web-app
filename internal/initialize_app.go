@@ -16,7 +16,6 @@ func InitializeApp() (*sql.DB, *echo.Echo) {
 	}
 
 	runMigrations(db)
-	SeedDB(db)
 
 	e := echo.New()
 

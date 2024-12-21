@@ -21,7 +21,7 @@ func TestGetReleases(t *testing.T) {
 	testSeedReleases(db)
 	testSeedArtists(db)
 	testSeedReleaseArtists(db)
-	populateReleaseFts(db)
+	PopulateReleaseFts(db)
 
 	// Create an Echo logger
 	e := echo.New()

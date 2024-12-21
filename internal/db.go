@@ -214,7 +214,7 @@ func seedReleaseArtists(db *sql.DB) {
 	log.Println("Seeded release_artist")
 }
 
-func populateReleaseFts(db *sql.DB) {
+func PopulateReleaseFts(db *sql.DB) {
 	tx, err := db.Begin()
 	if err != nil {
 		log.Fatalf("Failed to begin transaction: %v", err)
@@ -257,5 +257,5 @@ func SeedDB(db *sql.DB) {
 	seedReleases(db)
 	seedArtists(db)
 	seedReleaseArtists(db)
-	populateReleaseFts(db)
+	PopulateReleaseFts(db)
 }

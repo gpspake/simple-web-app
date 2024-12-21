@@ -42,7 +42,7 @@ func TestRoutes(t *testing.T) {
 	seedTestReleases(db)
 	seedTestArtists(db)
 	seedTestReleaseArtists(db)
-	populateReleaseFts(db)
+	PopulateReleaseFts(db)
 	SetupRoutes(e, db)
 
 	t.Run("GET /", func(t *testing.T) {

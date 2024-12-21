@@ -57,6 +57,14 @@ migrate-down: ## Roll back database migrations (down)
 	@echo "Rolling back database migrations..."
 	@migrate -path ./migrations -database "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable" down
 
+seed-db: ## Run the database seed command
+	@echo "Seeding the database..."
+	@go run cmd/seed_db/seed_db.go
+
+populate-fts: ## Populate the Full-Text Search table
+	@echo "Populating the Full-Text Search table..."
+	@go run cmd/populate_fts/populate_fts.go
+
 coverage: ## Generate and display test coverage report
 	@echo "Running tests and generating coverage report..."
 	@docker-compose -f docker-compose.test.yml run test-runner
