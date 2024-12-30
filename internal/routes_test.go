@@ -34,7 +34,7 @@ func TestRoutes(t *testing.T) {
 		e.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Home Page")
+		assert.Contains(t, rec.Body.String(), "Simple Web App")
 	})
 
 	t.Run("GET /releases", func(t *testing.T) {

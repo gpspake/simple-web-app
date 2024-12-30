@@ -14,7 +14,7 @@ func SetupRoutes(e *echo.Echo, db *sql.DB) {
 	e.GET("/", func(c echo.Context) error {
 		// Pass releases to the template
 		data := map[string]interface{}{
-			"Title":        "Home Page",
+			"Title":        "Simple Web App",
 			"CurrentRoute": c.Request().URL.Path,
 		}
 

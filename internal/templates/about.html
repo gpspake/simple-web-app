@@ -1,8 +1,19 @@
 {{ define "content" }}
+<div class="prose">
+    <header>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{.Title}}</h1>
+    </header>
 
-<header>
-    <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{.Title}}</h1>
-</header>
+    <p>I just wanted to learn about native search features in SQLite and I accidentally built a website.</p>
 
-<p>This is the about page.</p>
+    <h2>Search</h2>
+    <p>The search demo on the <a href="/releases">releases page</a> uses <a href="https://www.sqlite.org/fts5.html">The FTS5 SQLite extension</a> with trigram tokenization for substring matching, so partial search terms like "que" will return results for "queen" while "queen's" returns no results. Proper FTS search can also be used but there are tradeoffs so the right choice depends on the application. Either option is a convenient starting point for implementing search with minimal complexity. For cases where native PostgreSQL features don't meet the requirements, there are plenty of established search patterns and solutions available.</p>
+
+    <p class="text-rose-800"><i>Compare this demo to <a href="archive.georgespake.com">the same app using PostgreSQL FTS</a></i></p>
+
+    <h2>HTMX</h2>
+    <p>HTMX is used in the search demo for partial client-side re-rendering of search results and pagination. There's no build required, it's just a tiny static js file that's only loaded on the releases page. All the client-side functionality it provides in the demo is based on a few html attributes. Check out the
+        <a href="https://htmx.org/">htmx website</a> to learn more.</p>
+
+</div>
 {{ end }}
