@@ -13,7 +13,7 @@ import (
 
 func TestRoutes(t *testing.T) {
 	e := echo.New()
-	e.Renderer = &Template{}
+	e.Renderer = &Template{TemplateDir: "./templates"}
 
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {

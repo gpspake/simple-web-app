@@ -18,7 +18,9 @@ func main() {
 	defer db.Close()
 
 	internal.ResetDb()
-	internal.RunMigrations(db)
+	projectRoot, err := filepath.Abs(".")
+	migrationsDir := filepath.Join(projectRoot, "migrations")
+	internal.RunMigrations(db, migrationsDir)
 	internal.SeedDB(db)
 
 	// Initialize Echo

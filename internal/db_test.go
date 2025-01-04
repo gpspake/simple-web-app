@@ -3,6 +3,8 @@ package internal
 import (
 	"database/sql"
 	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -81,7 +83,14 @@ func TestRunMigrations(t *testing.T) {
 	}
 	defer db.Close()
 
-	RunMigrations(db)
+	// Dynamically locate the migrations directory relative to this file
+	_, testFilePath, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatalf("Failed to get test file path")
+	}
+	migrationsDir := filepath.Join(filepath.Dir(testFilePath), "../migrations")
+
+	RunMigrations(db, migrationsDir)
 
 	// Verify migrations
 	rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table'")

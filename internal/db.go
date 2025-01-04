@@ -10,7 +10,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
-	"path/filepath"
 )
 
 func InitDB() (*sql.DB, error) {
@@ -54,24 +53,17 @@ func ResetDb() {
 	log.Println("File created successfully.")
 }
 
-func RunMigrations(db *sql.DB) {
+func RunMigrations(db *sql.DB, migrationsDir string) {
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
-
 	if err != nil {
 		log.Fatalf("Could not create SQLite driver: %v", err)
 	}
 
-	basePath, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Could not get current working directory: %v", err)
-	}
-	migrationsPath := filepath.Join(basePath, "migrations")
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+migrationsPath,
+		"file://"+migrationsDir,
 		"sqlite3",
 		driver,
 	)
-
 	if err != nil {
 		log.Fatalf("Could not initialize migrations: %v", err)
 	}
